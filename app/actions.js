@@ -5,8 +5,13 @@ import { redirect } from 'next/navigation';
 import { db } from './db';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2026-09-30.endive',
+  apiVersion: '2023-10-16', // Version stable recommandée
 });
+
+// URL dynamique (s'adapte à Vercel ou en local)
+const baseUrl = process.env.VERCEL_URL 
+  ? `https://${process.env.VERCEL_URL}` 
+  : 'http://localhost:3000';
 
 export async function createCheckoutSession(productName, unitAmount, mode = 'payment') {
   let sessionConfig = {};
@@ -33,8 +38,8 @@ export async function createCheckoutSession(productName, unitAmount, mode = 'pay
         trial_period_days: 7,
       },
       payment_method_collection: 'always',
-      success_url: 'http://localhost:3000/succes?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'http://localhost:3000',
+      success_url: `${baseUrl}/succes?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}`,
     };
   } else {
     sessionConfig = {
@@ -51,8 +56,8 @@ export async function createCheckoutSession(productName, unitAmount, mode = 'pay
           quantity: 1,
         },
       ],
-      success_url: 'http://localhost:3000/succes?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'http://localhost:3000',
+      success_url: `${baseUrl}/succes?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}`,
     };
   }
 
