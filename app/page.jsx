@@ -123,7 +123,7 @@ export default function NovaApp() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
                 <span className="bg-amber-400 text-indigo-950 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wide">✨ 7 Jours d'Essai Offert • Zéro Contrainte</span>
               </div>
-              <h3 className="font-bold text-sm text-indigo-100">1. Choisissez votre formule d'installation clé en main :</h3>
+              <h3 className="font-bold text-sm text-indigo-100">Choisissez votre formule d'installation clé en main :</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                 <label className="flex items-start gap-3 p-3.5 rounded-xl border border-indigo-700/60 bg-indigo-900/40 cursor-pointer hover:bg-indigo-900/70 transition">
                   <input type="radio" name="setupTier" value="390" checked={selectedSetupFee === '390'} onChange={(e) => setSelectedSetupFee(e.target.value)} className="mt-1 text-amber-400" />
@@ -196,7 +196,7 @@ export default function NovaApp() {
                   <p className="text-[10px] opacity-80">{managerName} • {selectedTrade}</p>
                 </div>
               </div>
-              <button onClick={() => setIsSubscribed(false)} className="bg-black/30 hover:bg-black/40 text-white px-3 py-1.5 rounded text-xs">Quitter</button>
+              <button onClick={() => setIsSubscribed(false)} className="bg-black/30 hover:bg-black/40 text-white px-3 py-1.5 rounded text-xs cursor-pointer">Quitter</button>
             </div>
           </header>
 
@@ -229,7 +229,7 @@ export default function NovaApp() {
                 </div>
               </div>
 
-              <button onClick={saveAndPublishInvoice} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-xs font-bold transition shadow-sm">
+              <button onClick={saveAndPublishInvoice} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
                 💾 Enregistrer & Publier le Devis
               </button>
             </div>
