@@ -8,153 +8,54 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://js.stripe.com/v3/"></script>
-    <style>
-        @media print {
-            body * { visibility: hidden; }
-            #printable-invoice, #printable-invoice * { visibility: visible; }
-            #printable-invoice { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; }
-            .no-print { display: none !important; }
-        }
-    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col" x-data="novaApp()">
 
     <!-- LANDING PAGE -->
-    <div x-show="!isSubscribed" class="w-full max-w-6xl mx-auto px-4 md:px-8 py-10 space-y-8 flex-grow flex flex-col justify-center">
-        <div class="text-center space-y-3 flex flex-col items-center">
-            <div class="inline-block mb-1">
-                <img src="/logo-nova.jpg" alt="Logo Nova Infinity" class="h-28 md:h-40 w-auto object-contain mx-auto">
-            </div>
-            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Concentrez-vous sur vos chantiers, nous prenons soin de votre gestion.</h1>
-            <p class="text-sm text-slate-500 max-w-xl pt-1">Pensé avec des artisans de terrain. Configuré sur-mesure par notre équipe, sécurisé par le cloud et prêt à encaisser vos acomptes en un clin d'œil.</p>
+    <div x-show="!isSubscribed" class="w-full max-w-4xl mx-auto px-4 py-12 space-y-8 flex-grow flex flex-col justify-center">
+        <div class="text-center space-y-3">
+            <h1 class="text-3xl font-extrabold text-slate-900">Concentrez-vous sur vos chantiers, nous prenons soin de votre gestion.</h1>
+            <p class="text-sm text-slate-500">Solution SaaS pour artisans et professionnels du bâtiment.</p>
         </div>
 
-        <div class="bg-white p-6 md:p-10 rounded-3xl shadow-lg border border-slate-200 space-y-8 w-full max-w-4xl mx-auto">
-            <div class="bg-gradient-to-r from-indigo-950 to-indigo-900 text-white p-6 rounded-2xl space-y-4 shadow-md">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-                    <span class="bg-amber-400 text-indigo-950 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wide">✨ 7 Jours d'Essai Offert • Zéro Contrainte</span>
-                    <span class="text-xs font-semibold text-indigo-200 bg-indigo-900/60 px-3 py-1 rounded-lg border border-indigo-700">Accompagnement Humain Personnalisé</span>
-                </div>
-                <h3 class="font-bold text-sm text-indigo-100">1. Choisissez votre formule d'installation clé en main (paiement unique) :</h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                    <label class="flex items-start gap-3 p-3.5 rounded-xl border border-indigo-700/60 bg-indigo-900/40 cursor-pointer hover:bg-indigo-900/70 transition">
-                        <input type="radio" name="setupTier" value="390" x-model="selectedSetupFee" class="mt-1 text-amber-400">
-                        <div class="text-xs space-y-1">
-                            <strong class="text-white block text-sm">Pack Artisan Essentiel — 390 € HT</strong>
-                            <p class="text-indigo-200">Paramétrage initial de votre catalogue, charte graphique et intégration de vos premiers devis sous 48h par nos experts.</p>
-                        </div>
+        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 space-y-6">
+            <div class="space-y-4">
+                <h3 class="font-bold text-sm text-slate-900">1. Choisissez votre formule :</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
+                        <input type="radio" name="setupTier" value="390" x-model="selectedSetupFee">
+                        <strong class="block text-sm mt-2">Pack Artisan — 390 € HT</strong>
                     </label>
-                    <label class="flex items-start gap-3 p-3.5 rounded-xl border border-indigo-700/60 bg-indigo-900/40 cursor-pointer hover:bg-indigo-900/70 transition">
-                        <input type="radio" name="setupTier" value="499" x-model="selectedSetupFee" class="mt-1 text-amber-400">
-                        <div class="text-xs space-y-1">
-                            <strong class="text-white block text-sm">Pack PME Intégral — 499 € HT</strong>
-                            <p class="text-indigo-200">Installation prioritaire, migration de vos anciens fichiers clients, formation personnalisée en visio et automatisation.</p>
-                        </div>
+                    <label class="p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
+                        <input type="radio" name="setupTier" value="499" x-model="selectedSetupFee">
+                        <strong class="block text-sm mt-2">Pack PME — 499 € HT</strong>
                     </label>
-                </div>
-            </div>
-
-            <div class="space-y-4 border-b border-slate-100 pb-6">
-                <h2 class="font-bold text-slate-900 text-sm uppercase tracking-wider">2. Vos Informations Professionnelles & Légales</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div>
-                        <label class="block font-medium text-slate-700 mb-1">Votre Nom & Prénom</label>
-                        <input type="text" x-model="managerName" class="w-full border border-slate-300 rounded-xl p-3 outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-medium text-slate-700 mb-1">Nom de votre Entreprise</label>
-                        <input type="text" x-model="companyName" class="w-full border border-slate-300 rounded-xl p-3 outline-none">
-                    </div>
                 </div>
             </div>
 
             <div class="space-y-4">
-                <h2 class="font-bold text-slate-900 text-sm uppercase tracking-wider">3. Votre Corps de Métier Principal</h2>
-                <select x-model="selectedTrade" @change="updateTradeDefaults()" class="w-full border border-slate-300 rounded-xl p-3.5 text-sm bg-indigo-50/50 font-semibold text-indigo-950 outline-none">
-                    <option value="Plomberie">Nova Plomberie & Chauffage</option>
-                    <option value="Électricité">Nova Électricité & Domotique</option>
-                    <option value="Bâtiment">Nova Bâtiment & Maçonnerie</option>
-                    <option value="Peinture">Nova Peinture & Décoration</option>
-                    <option value="Menuiserie">Nova Menuiserie & Agencement</option>
-                    <option value="Toiture">Nova Toiture & Zinguerie</option>
-                    <option value="Carrelage">Nova Carrelage & Sols</option>
-                    <option value="Jardinage">Nova Paysage & Espaces Verts</option>
-                    <option value="Rénovation">Nova Rénovation Globale</option>
-                    <option value="Nettoyage">Nova Propreté & Services</option>
-                    <option value="Autre">➕ Autre Corps de Métier / PME</option>
-                </select>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                    <button @click="startFreeTrial()" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 py-3.5 rounded-xl font-bold text-xs transition shadow-sm cursor-pointer">
-                        🎁 Démarrer mes 7 Jours Gratuits
-                    </button>
-                    <button @click="redirectToStripeCheckout()" class="bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-bold text-xs transition shadow-sm cursor-pointer">
-                        🚀 Activer l'Installation & l'Abonnement (Stripe)
-                    </button>
-                </div>
+                <h3 class="font-bold text-sm text-slate-900">2. Vos Informations :</h3>
+                <input type="text" x-model="managerName" placeholder="Votre Nom" class="w-full border border-slate-300 rounded-xl p-3">
+                <input type="text" x-model="companyName" placeholder="Nom de l'entreprise" class="w-full border border-slate-300 rounded-xl p-3">
             </div>
+
+            <button @click="startApp()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-sm transition">
+                🚀 Accéder à mon Espace Pro
+            </button>
         </div>
     </div>
 
-    <!-- ESPACE ARTISAN -->
-    <div x-show="isSubscribed && !isPublicView && !isClientSigningView && !isPdfView && !showCommercialPitch" style="display: none;" class="min-h-screen flex flex-col w-full">
-        <header class="text-white shadow-md sticky top-0 z-50 transition-colors duration-300 w-full" :style="'background-color: ' + themeColor">
-            <div class="max-w-7xl mx-auto px-4 md:px-8 py-3.5 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <img src="/logo-nova.jpg" alt="Logo" class="h-10 w-auto object-contain bg-white rounded p-1">
-                    <div>
-                        <h1 class="text-sm font-bold" x-text="companyName"></h1>
-                        <p class="text-[10px] opacity-80" x-text="managerName + ' • ' + selectedTrade"></p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button @click="isPublicView = true" class="bg-amber-400 text-indigo-950 px-3 py-1.5 rounded text-xs font-bold">🌐 Portail Public</button>
-                    <button @click="isSubscribed = false" class="bg-black/30 hover:bg-black/40 text-white px-3 py-1.5 rounded text-xs">Quitter</button>
-                </div>
+    <!-- ESPACE PRO -->
+    <div x-show="isSubscribed" style="display: none;" class="min-h-screen flex flex-col w-full bg-slate-900 text-white p-8">
+        <div class="max-w-4xl mx-auto w-full space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <h1 class="text-xl font-bold" x-text="companyName"></h1>
+                <button @click="isSubscribed = false" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs">Quitter</button>
             </div>
-        </header>
-
-        <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6 flex-grow w-full">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <h3 class="font-bold text-slate-900 text-base">📝 Éditeur de Devis & Factures</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div>
-                        <label class="block font-medium text-slate-700 mb-1">Nom du Client</label>
-                        <input type="text" x-model="currentClient" placeholder="Ex: Jean Martin" class="w-full border border-slate-300 rounded-xl p-2.5 outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-medium text-slate-700 mb-1">E-mail du Client</label>
-                        <input type="email" x-model="currentClientEmail" placeholder="jean@example.com" class="w-full border border-slate-300 rounded-xl p-2.5 outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-medium text-slate-700 mb-1">Régime de TVA</label>
-                        <select x-model.number="tvaRate" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white font-medium outline-none">
-                            <option value="0">TVA non applicable (Art. 293 B du CGI)</option>
-                            <option value="10">TVA réduite 10%</option>
-                            <option value="20">TVA standard 20%</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="pt-4 border-t border-slate-200 space-y-1.5 text-xs">
-                    <div class="flex justify-between font-bold text-sm text-slate-900">
-                        <span>Montant Total TTC :</span>
-                        <span class="text-base text-indigo-900" x-text="calculateTotalTTC() + ' €'"></span>
-                    </div>
-                </div>
-                <button @click="saveAndPublishInvoice()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
-                    💾 Enregistrer & Publier le Devis
-                </button>
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
+                <h2 class="text-base font-bold text-amber-400">📝 Espace de Gestion & Devis</h2>
+                <p class="text-xs text-slate-300">Dirigeant : <span x-text="managerName"></span></p>
             </div>
-        </main>
-    </div>
-
-    <!-- PORTAIL PUBLIC -->
-    <div x-show="isSubscribed && isPublicView" style="display: none;" class="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
-        <div class="max-w-xl w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-200 space-y-6">
-            <h2 class="text-2xl font-black text-slate-900" x-text="companyName"></h2>
-            <p class="text-xs text-slate-500">Portail client public</p>
-            <button @click="isPublicView = false" class="bg-slate-200 text-slate-700 px-5 py-3 rounded-xl text-xs font-bold">Retour Espace Pro</button>
         </div>
     </div>
 
@@ -162,48 +63,11 @@
         function novaApp() {
             return {
                 isSubscribed: false,
-                isPublicView: false,
-                isClientSigningView: false,
-                isPdfView: false,
                 selectedSetupFee: '390',
-                selectedTrade: 'Plomberie',
                 managerName: 'Thomas Nova',
                 companyName: 'Nova Plomberie',
-                companyEmail: 'contact@nova-plomberie.fr',
-                themeColor: '#4f46e5',
-                currentClient: '',
-                currentClientEmail: '',
-                tvaRate: 10,
-                currentService: 'Installation & Raccordement sanitaire',
-                invoiceItems: [{ name: 'Forfait intervention et mise en service', qty: 1, price: 250 }],
-                invoices: [],
-                updateTradeDefaults() {
-                    if (this.selectedTrade && this.selectedTrade !== 'Autre') {
-                        this.companyName = 'Nova ' + this.selectedTrade;
-                        this.companyEmail = 'contact@nova-' + this.selectedTrade.toLowerCase() + '.fr';
-                    }
-                },
-                startFreeTrial() {
+                startApp() {
                     this.isSubscribed = true;
-                },
-                redirectToStripeCheckout() {
-                    alert("Redirection Stripe initialisée avec succès.\n\nFrais d'installation (" + this.selectedSetupFee + " € HT) + Abonnement 29€ HT/mois pris en compte.");
-                    this.isSubscribed = true;
-                },
-                calculateTotalHT() {
-                    return this.invoiceItems.reduce((acc, item) => acc + (item.qty * item.price), 0).toFixed(2);
-                },
-                calculateTVA() {
-                    return (parseFloat(this.calculateTotalHT()) * (this.tvaRate / 100)).toFixed(2);
-                },
-                calculateTotalTTC() {
-                    return (parseFloat(this.calculateTotalHT()) + parseFloat(this.calculateTVA())).toFixed(2);
-                },
-                saveAndPublishInvoice() {
-                    if (!this.currentClient) { alert('Veuillez indiquer le client.'); return; }
-                    let formattedNum = 'DEV-2026-' + String(this.invoices.length + 1).padStart(4, '0');
-                    this.invoices.unshift({ number: formattedNum, client: this.currentClient, totalTTC: this.calculateTotalTTC() });
-                    alert('Devis ' + formattedNum + ' enregistré.');
                 }
             }
         }
