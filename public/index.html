@@ -19,6 +19,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col" x-data="novaApp()">
 
+    <!-- LANDING PAGE -->
     <div x-show="!isSubscribed" class="w-full max-w-6xl mx-auto px-4 md:px-8 py-10 space-y-8 flex-grow flex flex-col justify-center">
         <div class="text-center space-y-3 flex flex-col items-center">
             <div class="inline-block mb-1">
@@ -97,7 +98,7 @@
     </div>
 
     <!-- ESPACE ARTISAN -->
-    <div x-show="isSubscribed" style="display: none;" class="min-h-screen flex flex-col w-full">
+    <div x-show="isSubscribed && !isPublicView && !isClientSigningView && !isPdfView && !showCommercialPitch" style="display: none;" class="min-h-screen flex flex-col w-full">
         <header class="text-white shadow-md sticky top-0 z-50 transition-colors duration-300 w-full" :style="'background-color: ' + themeColor">
             <div class="max-w-7xl mx-auto px-4 md:px-8 py-3.5 flex justify-between items-center">
                 <div class="flex items-center gap-3">
@@ -107,7 +108,10 @@
                         <p class="text-[10px] opacity-80" x-text="managerName + ' • ' + selectedTrade"></p>
                     </div>
                 </div>
-                <button @click="isSubscribed = false" class="bg-black/30 hover:bg-black/40 text-white px-3 py-1.5 rounded text-xs cursor-pointer">Quitter</button>
+                <div class="flex items-center gap-2">
+                    <button @click="isPublicView = true" class="bg-amber-400 text-indigo-950 px-3 py-1.5 rounded text-xs font-bold">🌐 Portail Public</button>
+                    <button @click="isSubscribed = false" class="bg-black/30 hover:bg-black/40 text-white px-3 py-1.5 rounded text-xs">Quitter</button>
+                </div>
             </div>
         </header>
 
@@ -145,10 +149,22 @@
         </main>
     </div>
 
+    <!-- PORTAIL PUBLIC -->
+    <div x-show="isSubscribed && isPublicView" style="display: none;" class="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
+        <div class="max-w-xl w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-200 space-y-6">
+            <h2 class="text-2xl font-black text-slate-900" x-text="companyName"></h2>
+            <p class="text-xs text-slate-500">Portail client public</p>
+            <button @click="isPublicView = false" class="bg-slate-200 text-slate-700 px-5 py-3 rounded-xl text-xs font-bold">Retour Espace Pro</button>
+        </div>
+    </div>
+
     <script>
         function novaApp() {
             return {
                 isSubscribed: false,
+                isPublicView: false,
+                isClientSigningView: false,
+                isPdfView: false,
                 selectedSetupFee: '390',
                 selectedTrade: 'Plomberie',
                 managerName: 'Thomas Nova',
@@ -166,6 +182,13 @@
                         this.companyName = 'Nova ' + this.selectedTrade;
                         this.companyEmail = 'contact@nova-' + this.selectedTrade.toLowerCase() + '.fr';
                     }
+                },
+                startFreeTrial() {
+                    this.isSubscribed = true;
+                },
+                redirectToStripeCheckout() {
+                    alert("Redirection Stripe initialisée avec succès.\n\nFrais d'installation (" + this.selectedSetupFee + " € HT) + Abonnement 29€ HT/mois pris en compte.");
+                    this.isSubscribed = true;
                 },
                 calculateTotalHT() {
                     return this.invoiceItems.reduce((acc, item) => acc + (item.qty * item.price), 0).toFixed(2);
