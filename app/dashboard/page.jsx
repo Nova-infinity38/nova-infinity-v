@@ -10,7 +10,7 @@ export default async function DashboardPage() {
     .eq('email', 'artisan.test@nova-infinity.com')
     .single();
 
-  // Demandes de test du portail public (à synchroniser avec Supabase en prod)
+  // Demandes de test du portail public
   const demandesClients = [
     {
       id: 'req_1',
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* --- SECTION CLIENTS : Demandes Reçues + Assistant IA + Modale Devis --- */}
+        {/* Section Clients */}
         <ClientRequestsSection 
           demandes={demandesClients} 
           artisanName={client?.name || 'Thomas Nova'} 
