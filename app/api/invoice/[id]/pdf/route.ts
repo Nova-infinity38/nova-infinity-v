@@ -10,12 +10,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       return new NextResponse('Identifiant de facture manquant', { status: 400 });
     }
 
-    const invoice = await db.invoice.findUnique({
-      where: { id },
-      include: { client: true },
-    });
+    // Requête Supabase équivalente à Prisma (avec la relation client)
+    const { data: invoice, error } = await db
+      .from('invoice')
+      .select('*, client(*)')
+      .eq('id', id)
+      .single();
 
-    if (!invoice) {
+    if (error || !invoice) {
       return new NextResponse('Facture introuvable en base de données', { status: 404 });
     }
 

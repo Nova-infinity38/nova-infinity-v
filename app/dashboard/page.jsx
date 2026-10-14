@@ -1,14 +1,16 @@
-import { db } from '../db';
+import { db } from '../../db';
 import Link from 'next/link';
 import ClientRequestsSection from './ClientRequestsSection';
 
 export default async function DashboardPage() {
-  const client = await db.client.findUnique({
-    where: { email: 'artisan.test@nova-infinity.com' },
-    include: { invoices: true },
-  });
+  // Requête Supabase équivalente à Prisma (avec la relation one-to-many vers les factures)
+  const { data: client, error } = await db
+    .from('client')
+    .select('*, invoices:invoice(*)')
+    .eq('email', 'artisan.test@nova-infinity.com')
+    .single();
 
-  // Demandes de test du portail public (à synchroniser avec Supabase / Prisma en prod)
+  // Demandes de test du portail public (à synchroniser avec Supabase en prod)
   const demandesClients = [
     {
       id: 'req_1',
@@ -132,7 +134,7 @@ export default async function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {client && client.invoices.length > 0 ? (
+                {client && client.invoices && client.invoices.length > 0 ? (
                   client.invoices.map((inv) => (
                     <tr key={inv.id} className="hover:bg-slate-50/50 transition">
                       <td className="p-4 font-medium text-slate-800">{inv.productName}</td>
