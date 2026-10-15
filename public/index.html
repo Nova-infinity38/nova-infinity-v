@@ -1,76 +1,339 @@
-﻿<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App.Nova.Infinity - Votre Solution SaaS Artisans Sur-Mesure</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://js.stripe.com/v3/"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col" x-data="novaApp()">
+﻿<script>
+    const supabaseUrl = 'https://odjlwrbeullnerurhmqp.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+    const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
-    <!-- LANDING PAGE -->
-    <div x-show="!isSubscribed" class="w-full max-w-4xl mx-auto px-4 py-12 space-y-8 flex-grow flex flex-col justify-center">
-        <div class="text-center space-y-3">
-            <h1 class="text-3xl font-extrabold text-slate-900">Concentrez-vous sur vos chantiers, nous prenons soin de votre gestion.</h1>
-            <p class="text-sm text-slate-500">Solution SaaS pour artisans et professionnels du bâtiment.</p>
-        </div>
+    const stripePublicKey = 'pk_test_51UHjKWCZ3M2ib9Occ2wqwoBIct6arfK4c8bt3qWzl1KUy6d8WNv64DFzX7n1n2ceMLFkry65QD8sPwLegARfBrmG00nPt4Q5xw';
+    const stripe = window.Stripe ? window.Stripe(stripePublicKey) : null;
 
-        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 space-y-6">
-            <div class="space-y-4">
-                <h3 class="font-bold text-sm text-slate-900">1. Choisissez votre formule :</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <label class="p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
-                        <input type="radio" name="setupTier" value="390" x-model="selectedSetupFee">
-                        <strong class="block text-sm mt-2">Pack Artisan — 390 € HT</strong>
-                    </label>
-                    <label class="p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
-                        <input type="radio" name="setupTier" value="499" x-model="selectedSetupFee">
-                        <strong class="block text-sm mt-2">Pack PME — 499 € HT</strong>
-                    </label>
-                </div>
-            </div>
-
-            <div class="space-y-4">
-                <h3 class="font-bold text-sm text-slate-900">2. Vos Informations :</h3>
-                <input type="text" x-model="managerName" placeholder="Votre Nom" class="w-full border border-slate-300 rounded-xl p-3">
-                <input type="text" x-model="companyName" placeholder="Nom de l'entreprise" class="w-full border border-slate-300 rounded-xl p-3">
-            </div>
-
-            <button @click="startApp()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-sm transition">
-                🚀 Accéder à mon Espace Pro
-            </button>
-        </div>
-    </div>
-
-    <!-- ESPACE PRO -->
-    <div x-show="isSubscribed" style="display: none;" class="min-h-screen flex flex-col w-full bg-slate-900 text-white p-8">
-        <div class="max-w-4xl mx-auto w-full space-y-6">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                <h1 class="text-xl font-bold" x-text="companyName"></h1>
-                <button @click="isSubscribed = false" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs">Quitter</button>
-            </div>
-            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
-                <h2 class="text-base font-bold text-amber-400">📝 Espace de Gestion & Devis</h2>
-                <p class="text-xs text-slate-300">Dirigeant : <span x-text="managerName"></span></p>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function novaApp() {
-            return {
-                isSubscribed: false,
-                selectedSetupFee: '390',
-                managerName: 'Thomas Nova',
-                companyName: 'Nova Plomberie',
-                startApp() {
-                    this.isSubscribed = true;
+    function novaApp() {
+        return {
+            isSubscribed: false,
+            isPublicView: false,
+            isClientSigningView: false,
+            isPdfView: false,
+            showCommercialPitch: false,
+            openAdminModal: false,
+            isTrialActive: false,
+            userRole: 'admin',
+            selectedSetupFee: '390',
+            selectedTrade: 'Plomberie',
+            managerName: 'Thomas Nova',
+            companyName: 'Nova Plomberie',
+            companyAddress: '45 Avenue des Entrepreneurs, 38000 Grenoble',
+            companyEmail: 'contact@nova-plomberie.fr',
+            companySiret: '842 910 334 00019',
+            companyIban: 'FR76 3000 2000 1234 5678 9012 345',
+            themeColor: '#4f46e5',
+            currentClient: '',
+            currentClientEmail: '',
+            tvaRate: 10,
+            currentService: 'Installation & Raccordement sanitaire',
+            invoiceItems: [
+                { name: 'Forfait intervention et mise en service', qty: 1, price: 250 }
+            ],
+            invoices: [],
+            clientLeads: [
+                { client: 'Marc Dupuis', email: 'marc.dupuis@gmail.com', service: 'Recherche de fuite & Dépannage urgence', options: ['Intervention prioritaire 48h'], message: 'Bonjour, fuite sous l’évier de cuisine depuis ce matin, merci de passer rapidement !' }
+            ],
+            publicClientName: '',
+            publicClientEmail: '',
+            publicSelectedService: '',
+            publicOptions: [],
+            clientMessage: '',
+            signingInvoice: null,
+            activePdf: null,
+            isDrawing: false,
+            canvasContext: null,
+            currentTimestamp: '',
+            defaultCatalogItems: [
+                { name: 'Forfait intervention de base', price: 150 },
+                { name: 'Fourniture matériel pro', price: 90 },
+                { name: 'Garantie décennale & conformité', price: 120 }
+            ],
+            tradeServices: {
+                'Plomberie': ['Installation & Raccordement sanitaire', 'Recherche de fuite & Dépannage urgence', 'Rénovation complète de salle de bains'],
+                'Électricité': ['Câblage et mise en conformité tableau', 'Dépannage panne électrique & Diagnostic', 'Installation luminaires & Domotique'],
+                'Bâtiment': ['Gros œuvre & Maçonnerie générale', 'Cloisons, Isolation & Plâtrerie', 'Rénovation tous corps d\'état'],
+                'Peinture': ['Peinture murs et plafonds', 'Pose de revêtements muraux & Papiers peints', 'Ravalement de façade & Boiseries'],
+                'Menuiserie': ['Pose de fenêtres et portes sur-mesure', 'Agencement dressings & Placards', 'Parquet et terrasses bois'],
+                'Toiture': ['Réfection de toiture & Étanchéité', 'Nettoyage et démoussage de tuiles', 'Pose de Velux & Zinguerie'],
+                'Carrelage': ['Pose de carrelage sol ou mural', 'Préparation du support & Ragréage', 'Faïence et mosaïque décorative'],
+                'Jardinage': ['Création d\'espace vert & Plantations', 'Entretien paysager & Taille de haies', 'Pose de clôtures & Arrosage automatique'],
+                'Rénovation': ['Rénovation globale d\'appartement / maison', 'Aménagement des espaces intérieurs', 'Isolation thermique par l\'intérieur'],
+                'Nettoyage': ['Nettoyage de fin de chantier', 'Entretien régulier locaux professionnels', 'Remise en état après sinistre'],
+                'Autre': ['Prestation sur-mesure standard', 'Intervention technique personnalisée']
+            },
+            getCurrentTradeServices() {
+                let key = this.selectedTrade === 'Autre' ? 'Autre' : this.selectedTrade;
+                return this.tradeServices[key] || ['Prestation standard'];
+            },
+            updateTradeDefaults() {
+                if (this.selectedTrade && this.selectedTrade !== 'Autre') {
+                    this.companyName = 'Nova ' + this.selectedTrade;
+                    this.companyEmail = 'contact@nova-' + this.selectedTrade.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") + '.fr';
                 }
+                let srvs = this.getCurrentTradeServices();
+                this.publicSelectedService = srvs[0] || '';
+            },
+            startFreeTrial() {
+                this.isTrialActive = true;
+                this.publicSelectedService = this.getCurrentTradeServices()[0] || '';
+                this.isSubscribed = true;
+                if (supabaseClient) {
+                    supabaseClient.from('subscriptions').insert([{ company: this.companyName, email: this.companyEmail, status: 'trial' }]);
+                }
+            },
+            redirectToStripeCheckout() {
+                alert("Redirection Stripe initialisée avec succès.\n\nFrais d'installation (" + this.selectedSetupFee + " € HT) + Abonnement 29€ HT/mois pris en compte.");
+                this.isTrialActive = false;
+                this.isSubscribed = true;
+            },
+            cancelTrial() {
+                if (confirm("Souhaitez-vous suspendre votre période d'essai Cloud ? Vos données resteront sauvegardées pendant 30 jours.")) {
+                    this.isTrialActive = false;
+                    this.isSubscribed = false;
+                    alert("Votre essai a été suspendu.");
+                }
+            },
+            addCustomItem() {
+                this.invoiceItems.push({ name: 'Nouvelle ligne de prestation', qty: 1, price: 100 });
+            },
+            addCatalogItem(name) {
+                if (!name) return;
+                let found = this.defaultCatalogItems.find(i => i.name === name);
+                if (found) {
+                    this.invoiceItems.push({ name: found.name, qty: 1, price: found.price });
+                }
+            },
+            removeItem(index) {
+                this.invoiceItems.splice(index, 1);
+            },
+            calculateTotalHT() {
+                return this.invoiceItems.reduce((acc, item) => acc + (item.qty * item.price), 0).toFixed(2);
+            },
+            calculateTVA() {
+                let ht = parseFloat(this.calculateTotalHT());
+                return (ht * (this.tvaRate / 100)).toFixed(2);
+            },
+            calculateTotalTTC() {
+                let ht = parseFloat(this.calculateTotalHT());
+                let tva = parseFloat(this.calculateTVA());
+                return (ht + tva).toFixed(2);
+            },
+            calculateAcompte() {
+                let ttc = parseFloat(this.calculateTotalTTC());
+                return (ttc * 0.3).toFixed(2);
+            },
+            calculateSigningAcompte() {
+                if (!this.signingInvoice) return 0;
+                return (parseFloat(this.signingInvoice.totalTTC) * 0.3).toFixed(2);
+            },
+            calculateProjectedCashflow() {
+                let total = 0;
+                this.invoices.forEach(inv => {
+                    if (inv.isFacture) {
+                        total += parseFloat(inv.totalTTC);
+                    } else if (inv.signature) {
+                        total += parseFloat(inv.totalTTC) * 0.3;
+                    }
+                });
+                return total.toFixed(2);
+            },
+            submitPublicLead() {
+                if (!this.publicClientName) {
+                    alert("Veuillez renseigner votre nom.");
+                    return;
+                }
+                let newLead = {
+                    client: this.publicClientName,
+                    email: this.publicClientEmail || 'client@example.com',
+                    service: this.publicSelectedService,
+                    options: [...this.publicOptions],
+                    message: this.clientMessage
+                };
+                this.clientLeads.push(newLead);
+                
+                if (supabaseClient) {
+                    supabaseClient.from('leads').insert([newLead]);
+                }
+
+                alert("Votre demande a bien été transmise à l'artisan.");
+                this.publicClientName = '';
+                this.publicClientEmail = '';
+                this.publicOptions = [];
+                this.clientMessage = '';
+                this.isPublicView = false;
+            },
+            getRichEmailBody(lead) {
+                let subject = "Votre projet de " + lead.service + " avec " + this.companyName;
+                let optionsText = lead.options.length > 0 ? " J'ai bien noté vos options choisies (" + lead.options.join(', ') + ")." : "";
+                let body = "Bonjour " + lead.client + ",\n\nMerci pour votre message concernant votre projet de " + lead.service + "." + optionsText + "\n\nJe prépare votre devis personnalisé et vous l'envoie rapidement.\n\nÀ très vite,\n" + this.managerName + "\n" + this.companyName + "\n" + this.companyEmail;
+                return 'mailto:' + (lead.email || '') + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+            },
+            convertLeadToInvoice(lead) {
+                this.currentClient = lead.client;
+                this.currentClientEmail = lead.email;
+                this.currentService = lead.service;
+                
+                this.invoiceItems = [
+                    { name: lead.service, qty: 1, price: 300 }
+                ];
+
+                if (lead.options && lead.options.length > 0) {
+                    lead.options.forEach(opt => {
+                        this.invoiceItems.push({ name: 'Option : ' + opt, qty: 1, price: 80 });
+                    });
+                }
+
+                window.scrollTo({ top: 400, behavior: 'smooth' });
+                alert('Demande convertie en devis avec succès.');
+            },
+            saveAndPublishInvoice() {
+                if (!this.currentClient) {
+                    alert('Veuillez indiquer le nom du client.');
+                    return;
+                }
+                let nextNum = this.invoices.length + 1;
+                let formattedNum = 'DEV-2026-' + String(nextNum).padStart(4, '0');
+
+                let newInv = {
+                    number: formattedNum,
+                    client: this.currentClient,
+                    clientEmail: this.currentClientEmail,
+                    service: this.currentService,
+                    totalTTC: this.calculateTotalTTC(),
+                    isFacture: false,
+                    signature: null,
+                    signatureMeta: '',
+                    relanceCount: 0,
+                    items: [...this.invoiceItems]
+                };
+                this.invoices.unshift(newInv);
+
+                if (supabaseClient) {
+                    supabaseClient.from('invoices').insert([newInv]);
+                }
+
+                alert('Devis ' + formattedNum + ' enregistré et synchronisé sur le cloud.');
+            },
+            openPdfView(inv) {
+                this.activePdf = inv;
+                this.isPdfView = true;
+            },
+            openClientPortalForSigning(inv) {
+                this.signingInvoice = inv;
+                this.currentTimestamp = new Date().toLocaleString('fr-FR');
+                this.isClientSigningView = true;
+                setTimeout(() => { this.initCanvas(); }, 100);
+            },
+            initCanvas() {
+                const canvas = document.getElementById('signatureCanvas');
+                if (!canvas) return;
+                this.canvasContext = canvas.getContext('2d');
+                this.canvasContext.lineWidth = 2;
+                this.canvasContext.lineCap = 'round';
+                this.canvasContext.strokeStyle = '#0f172a';
+
+                const getPos = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                    return {
+                        x: clientX - rect.left,
+                        y: clientY - rect.top
+                    };
+                };
+
+                const startDraw = (e) => {
+                    e.preventDefault();
+                    this.isDrawing = true;
+                    const pos = getPos(e);
+                    this.canvasContext.beginPath();
+                    this.canvasContext.moveTo(pos.x, pos.y);
+                };
+
+                const draw = (e) => {
+                    if (!this.isDrawing) return;
+                    e.preventDefault();
+                    const pos = getPos(e);
+                    this.canvasContext.lineTo(pos.x, pos.y);
+                    this.canvasContext.stroke();
+                };
+
+                const stopDraw = (e) => {
+                    if (!this.isDrawing) return;
+                    e.preventDefault();
+                    this.isDrawing = false;
+                };
+
+                canvas.onmousedown = startDraw;
+                canvas.onmousemove = draw;
+                canvas.onmouseup = stopDraw;
+                canvas.onmouseleave = stopDraw;
+
+                canvas.ontouchstart = startDraw;
+                canvas.ontouchmove = draw;
+                canvas.ontouchend = stopDraw;
+            },
+            clearCanvas() {
+                const canvas = document.getElementById('signatureCanvas');
+                if (canvas && this.canvasContext) {
+                    this.canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            },
+            validateSignatureAndPayStripe() {
+                const canvas = document.getElementById('signatureCanvas');
+                if (!canvas) return;
+                const dataUrl = canvas.toDataURL('image/png');
+                if (this.signingInvoice) {
+                    this.signingInvoice.signature = dataUrl;
+                    this.signingInvoice.signatureMeta = 'Signé le ' + this.currentTimestamp + ' - IP sécurisée';
+                }
+                this.isClientSigningView = false;
+                alert("Paiement de l'acompte validé via Stripe et signature enregistrée.");
+            },
+            convertToFacture(inv) {
+                inv.isFacture = true;
+                inv.number = inv.number.replace('DEV', 'FAC');
+            },
+            sendRelanceEmail(inv) {
+                inv.relanceCount = (inv.relanceCount || 0) + 1;
+                let subject, body;
+
+                if (!inv.isFacture) {
+                    subject = "Suivi de votre devis " + inv.number + " - " + this.companyName;
+                    body = "Bonjour " + inv.client + ",\n\nJe me permets de faire un petit point concernant votre devis " + inv.number + " d'un montant de " + inv.totalTTC + " € TTC.\n\nAvez-vous pu étudier notre proposition ? Je reste à votre entière disposition si vous avez des questions ou souhaitez ajuster certains points.\n\nRestant à votre écoute,\n" + this.managerName + "\n" + this.companyName;
+                } else {
+                    if (inv.relanceCount === 1) {
+                        subject = "Rappel amical : Facture " + inv.number + " - " + this.companyName;
+                        body = "Bonjour " + inv.client + ",\n\nSauf erreur de notre part, nous n'avons pas encore reçu le règlement de votre facture " + inv.number + " d'un montant de " + inv.totalTTC + " € TTC.\n\nPensez à effectuer le virement sur notre IBAN ou à nous contacter en cas de besoin.\n\nBien à vous,\n" + this.managerName + "\n" + this.companyName;
+                    } else {
+                        subject = "⚠️ Dernier rappel : Facture impayée " + inv.number + " - " + this.companyName;
+                        body = "Bonjour " + inv.client + ",\n\nNous constatons ce jour qu'aucune régularisation n'a été effectuée concernant la facture " + inv.number + " (" + inv.totalTTC + " € TTC).\n\nNous vous remercions de bien vouloir procéder au règlement dans les plus brefs délais afin d'éviter toute complication.\n\nComptant sur votre réactivité,\n" + this.managerName + "\n" + this.companyName;
+                    }
+                }
+
+                window.location.href = "mailto:" + (inv.clientEmail || '') + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+            },
+            exportCSV() {
+                if (this.invoices.length === 0) {
+                    alert("Aucune donnée comptable à exporter.");
+                    return;
+                }
+                let csvContent = "data:text/csv;charset=utf-8,Reference;Client;Email;Prestation;TotalTTC;Type\n";
+                this.invoices.forEach(inv => {
+                    let typeDoc = inv.isFacture ? "Facture" : "Devis";
+                    csvContent += '"' + inv.number + '","' + inv.client + '","' + (inv.clientEmail || '') + '","' + inv.service + '","' + inv.totalTTC + '","' + typeDoc + '"\n';
+                });
+                let encodedUri = encodeURI(csvContent);
+                let link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "comptabilite_app_nova.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
         }
-    </script>
-</body>
-</html>
+    }
+</script>

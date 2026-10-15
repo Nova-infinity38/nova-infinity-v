@@ -1,1 +1,5 @@
-{"crons":[{"path":"/api/cron/relances","schedule":"0 9 * * *"}]}
+﻿{
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs"
+}
